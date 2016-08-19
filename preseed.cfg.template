@@ -180,6 +180,7 @@ sed -i 's/auto encc000.2893/auto lxcbr0/g' /target/etc/network/interfaces.d/work
 echo -e "\nauto encc000.2893" >> /target/etc/network/interfaces.d/workaround_hack; \
 echo -e "iface encc000.2893 inet manual\n\tvlan-raw-device encc000" >> /target/etc/network/interfaces.d/workaround_hack; \
 sed -i 's/vlan_raw_device encc000//g' /target/etc/network/interfaces.d/workaround_hack; \
+in-target chzdev --no-root-update -pVe {OTHERDASD}; \
 in-target chzdev --no-root-update -pVe c000 bridge_role=primary; \
 in-target chzdev --no-root-update -pVe c003
 

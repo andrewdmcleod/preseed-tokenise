@@ -17,7 +17,8 @@ parser.add_argument('-d', '--dns', help='nameserver', required=True)
 parser.add_argument('-v', '--vlan', help='vlan id', required=True)
 parser.add_argument('-n', '--hostname', help='hostname', required=True)
 parser.add_argument('-x', '--domain', help='domain name, defaults to canonical.com', default='canonical.com')
-parser.add_argument('-a', '--dasd', help='comma separated dasd string, e.g. 0.0.0200,0.0.0300,0.0.01b1,0.0.212b', required=True)
+parser.add_argument('-a', '--dasd', help='comma separated dasd string for root partition, e.g. 0.0.0200,0.0.0300,0.0.01b1,0.0.212b', required=True)
+parser.add_argument('-o', '--otherdasd', help='comma separated dasd string for non-root partitions (will not be formatted)', required=True)
 parser.add_argument('-f', '--ftp', help='ftp server address', required=True)
 parser.add_argument('-u', '--username', help='access username', required=True)
 parser.add_argument('-e', '--fullname', help='access user fullname', required=True)
@@ -33,6 +34,7 @@ tokens['IP_ADDR'] = args.ip
 tokens['MASK'] = args.mask
 tokens['GATEWAY'] = args.gateway
 tokens['DOMAIN'] = args.domain
+tokens['OTHERDASD'] = args.otherdasd
 if tokens['GATEWAY'] == None:
 	tokens['GATEWAY'] = '.'.join(tokens['IP_ADDR'].split('.')[0:3]) + '.1'
 tokens['DNS'] = args.dns
@@ -59,7 +61,7 @@ def create_file(infile, outfile):
 		wrapkey = "{" + key + "}"
 		filedata = filedata.replace(wrapkey, value)
 
-	f.open(outfile, "w")
+	f = open(outfile, "w")
 	f.write(filedata)
 	f.close()
 
