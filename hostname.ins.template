@@ -2,5 +2,5 @@
 kernel.ubuntu 0x00000000
 initrd.off 0x0001040c
 initrd.siz 0x00010414
-parmfile.s1lp12 0x00010480
+parmfile.{HOSTNAME} 0x00010480
 initrd.ubuntu 0x01000000

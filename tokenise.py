@@ -6,8 +6,10 @@ parser = argparse.ArgumentParser(description="Generate parmfile and preseed from
 
 parser.add_argument('-t', '--cfgtemplate', help='preseed template filename, defaults to preseed.cfg.template', default='preseed.cfg.template')
 parser.add_argument('-r', '--parmtemplate', help='parmfile template filename, defaults to parmfile.template', default='parmfile.template')
+parser.add_argument('-s', '--instemplate', help='ins template filename, defaults to hostname.ins.template', default='hostname.ins.template')
 parser.add_argument('-c', '--cfgfile', help='preseed output filename, defaults to preseed-$hostname.cfg')
 parser.add_argument('-p', '--parmfile', help='parmfile output filename, defaults to parmfile.hostname')
+parser.add_argument('-b', '--insfile', help='ins output filename, defaults to hostname.ins')
 parser.add_argument('-i', '--ip', help='ip address', required=True)
 parser.add_argument('-m', '--mask', help='netmask, defaults to 255.255.255.0 (/24)', default='255.255.255.0')
 parser.add_argument('-g', '--gateway', help='network gateway, defaults to ipaddress.1')
@@ -26,6 +28,7 @@ tokens = {}
 
 tokens['CFGFILE'] = args.cfgfile
 tokens['PARMFILE'] = args.parmfile
+tokens['INSFILE']  =args.insfile
 tokens['IP_ADDR'] = args.ip
 tokens['MASK'] = args.mask
 tokens['GATEWAY'] = args.gateway
@@ -39,40 +42,31 @@ if tokens['CFGFILE'] == None:
 	tokens['CFGFILE'] = 'preseed-' + tokens['HOSTNAME'] + '.cfg'
 if tokens['PARMFILE'] == None:
 	tokens['PARMFILE'] = 'parmfile.' + tokens['HOSTNAME']
+if tokens['INSFILE'] == None:
+	tokens['INSFILE'] = tokens['HOSTNAME'] + '.ins'
 tokens['DASDSTRING'] = args.dasd
 tokens['FTPSERVER'] = args.ftp
 tokens['USERNAME'] = args.username
 tokens['FULLNAME'] = args.fullname
 tokens['PASSWDCRYPTED'] = args.passwdcrypted
 
-def create_parmfile():
-	f = open(args.parmtemplate, "r")
+def create_file(infile, outfile):
+	f = open(infile, "r")
 	filedata = f.read()
 	f.close()
-	
+
 	for key, value in tokens.iteritems():
 		wrapkey = "{" + key + "}"
-		filedata = filedata.replace(wrapkey, value) 
-	
-	f = open(tokens['PARMFILE'], "w")
+		filedata = filedata.replace(wrapkey, value)
+
+	f.open(outfile, "w")
 	f.write(filedata)
 	f.close()
 
-def create_preseed():
-	f = open(args.cfgtemplate, "r")
-	filedata = f.read()
-	f.close()
-	
-	for key, value in tokens.iteritems():
-		wrapkey = "{" + key + "}"
-		filedata = filedata.replace(wrapkey, value) 
-	
-	f = open(tokens['CFGFILE'], "w")
-	f.write(filedata)
-	f.close()	
-		
-create_parmfile()
-create_preseed()
+create_file(args.parmtemplate, tokens['PARMFILE'])
+create_file(args.cfgtemplate, tokens['CFGFILE'])
+create_file(args.instemplate, tokens['INSFILE'])
+
 		
 		
 		

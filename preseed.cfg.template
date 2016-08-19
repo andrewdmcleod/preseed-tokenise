@@ -6,6 +6,8 @@ d-i apt-setup/proposed boolean true
 
 ## base-installer  base-installer/install-recommends boolean true
 d-i pkgsel/update-policy select none
+d-i pkgsel/include string lxc
+
 
 #
 # Localization
@@ -16,26 +18,33 @@ d-i debian-installer/locale string en_US.UTF-8
 ## d-i localechooser/supported-locales multiselect en_US.UTF-8
 
 # activate qeth
-d-i s390-netdevice/choose_networktype string qeth
-d-i s390-netdevice/qeth/choose string 0.0.c000-0.0.c001-0.0.c002
-d-i s390-netdevice/qeth/layer2 boolean true
-d-i s390-netdevice/qeth/port string 0
+#d-i s390-netdevice/choose_networktype string qeth
+#d-i s390-netdevice/qeth/choose string 0.0.c000-0.0.c001-0.0.c002
+#d-i s390-netdevice/qeth/layer2 boolean true
+#d-i s390-netdevice/qeth/port string 0
 
 # use static network configuration
-d-i netcfg/choose_interface select auto
+#d-i netcfg/choose_interface select auto
 d-i netcfg/disable_autoconfig boolean true
+d-i netcfg/disable_dhcp boolean true
+#d-i netcfg/get_ipaddress string {IP_ADDR}
+#d-i netcfg/get_netmask string {MASK}
+#d-i netcfg/get_gateway string {GATEWAY}
+#d-i netcfg/get_nameservers string {DNS}
+#d-i netcfg/use_vlan boolean true
+#d-i netcfg/vlan_id string {VLAN}
+#d-i netcfg/confirm_static boolean true
+#d-i netcfg/hostname string {HOSTNAME}
+#d-i netcfg/dhcp_options select Configure network manually
+#d-i netcfg/get_domain {DOMAIN}
 
-d-i netcfg/get_ipaddress string {IP_ADDR}
-d-i netcfg/get_netmask string {MASK}
-d-i netcfg/get_gateway string {GATEWAY}
-d-i netcfg/get_nameservers string {DNS}
-d-i netcfg/confirm_static boolean true
-d-i netcfg/hostname string {HOSTNAME}
+#d-i s390-netdevice/choose_networktype string qeth
+#d-i s390-netdevice/qeth/choose string 0.0.c003-0.0.c004-0.0.c005
+#d-i s390-netdevice/qeth/layer2 boolean true
+#d-i s390-netdevice/qeth/port string 0 
 
-d-i s390-netdevice/choose_networktype string qeth
-d-i s390-netdevice/qeth/choose string 0.0.c003-0.0.c004-0.0.c005
-d-i s390-netdevice/qeth/layer2 boolean true
-d-i s390-netdevice/qeth/port string 0 
+d-i s390-zfcp/no_zfcp_hosts note
+d-i s390-zfcp/select_zfcp_host string Finish
 
 d-i s390-dasd/dasd string {DASDSTRING}
 d-i s390-dasd/auto-format boolean true
@@ -48,16 +57,17 @@ d-i partman-lvm/device_remove_lvm_span boolean true
 d-i partman-lvm/confirm boolean true
 d-i partman-lvm/confirm_nooverwrite boolean true
  
-# partitioning of a single DASD with three partitions
+# partitioning of a single DASD with two partitions
+d-i partman-auto/disk string /dev/dasda
 d-i partman-auto/method string regular
 d-i partman-auto/expert_recipe string                         \
-     2-DASD-basic::                                           \
+     basic-boot ::                                            \
               10240 1000 20480	ext4                          \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ / }                         \
               .                                               \
-              2048 2048 2048	linux-swap                    \
+              2048 4906 2048	linux-swap                    \
                       method{ swap } format{ }                \
               .                                               \
 #              2048 16384 100000   xfs                         \
@@ -65,6 +75,7 @@ d-i partman-auto/expert_recipe string                         \
 #                      use_filesystem{ } filesystem{ xfs }     \
 #                      mountpoint{ /home }                     \
 #              .
+d-i partman-auto/choose_recipe select basic-boot
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
@@ -78,7 +89,7 @@ d-i network-console/start note
 # user setup
 d-i passwd/user-fullname string {FULLNAME}
 d-i passwd/username string {USERNAME}
-d-i passwd/user-password-crypted password {PASSWD_CRYPTED}
+d-i passwd/user-password-crypted password {PASSWDCRYPTED}
 
 d-i user-setup/encrypt-home boolean false
 
@@ -162,9 +173,18 @@ d-i tasksel/first multiselect standard system utilities, OpenSSH server, Basic U
 ## kdump-tools     kdump-tools/use_kdump   boolean true
 
 # after installation, install some packages - use only one line!!	
+d-i preseed/late_command string \
+znetconf -a c003; \
+cp /etc/network/interfaces /target/etc/network/interfaces.d/workaround_hack; \
+sed -i -e 's/iface encc000.2893 inet static/iface lxcbr0 inet static\n\tbridge-ports encc000.2893/g' /target/etc/network/interfaces.d/workaround_hack; \
+sed -i 's/auto encc000.2893/auto lxcbr0/g' /target/etc/network/interfaces.d/workaround_hack; \
+echo -e "\nauto encc000.2893" >> /target/etc/network/interfaces.d/workaround_hack; \
+echo -e "iface encc000.2893 inet manual\n\tvlan-raw-device encc000" >> /target/etc/network/interfaces.d/workaround_hack; \
+sed -i 's/vlan_raw_device encc000//g' /target/etc/network/interfaces.d/workaround_hack
+
 #d-i preseed/late_command string in-target sed -i s/prohibit-password/yes/g /etc/ssh/sshd_config; apt-install xfsprogs initramfs-tools screen ftp rsync vim build-essential multipath-tools lsscsi lvm2 automake-1.15 crash strace bc expect ethtool scsitools aptitude vlan libssl-dev opencryptoki libopencryptoki-dev libica-dev libica-utils makedumpfile kdump-tools python flex libjson0-dev libcryptsetup-dev cryptsetup openssl-ibmca sosreport libtool libldap2-dev byacc
 ## d-i preseed/late_command string in-target sed -i s/prohibit-password/yes/g /etc/ssh/sshd_config; apt-install xfsprogs initramfs-tools screen ftp rsync vim build-essential multipath-tools lsscsi lvm2 scsitools kdump-tools
 
 # reboot at the end
-#d-i finish-install/reboot_in_progress note
+d-i finish-install/reboot_in_progress note
 

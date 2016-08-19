@@ -6,7 +6,7 @@ s390-netdevice/qeth/choose=0.0.c000-0.0.c001-0.0.c002
 netcfg/get_ipaddress={IP_ADDR} netcfg/get_netmask={MASK}
 netcfg/get_gateway={GATEWAY} netcfg/get_nameservers={DNS}
 netdevice/qeth/layer2=true netcfg/confirm_static=true              
-netcfg/use_autoconfig=1 netcfg/disable_dhcp=true netcfg/vlan_id={VLAN}
+netcfg/use_autoconfig=0 netcfg/disable_dhcp=true netcfg/vlan_id={VLAN}
 hostname={HOSTNAME} domain={DOMAIN} network-console/start=note
 network-console/password=pass4inst                              
 network-console/password-again=pass4inst
