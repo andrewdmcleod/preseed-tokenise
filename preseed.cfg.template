@@ -101,7 +101,7 @@ d-i clock-setup/utc boolean true
 # servant mirror settings
 d-i mirror/country string manual
 d-i mirror/protocol string http
-d-i mirror/http/hostname string ports.ubuntu.com
+d-i mirror/http/hostname string us.ports.ubuntu.com
 d-i mirror/http/directory string /
 #
 # Use a http proxy
@@ -174,13 +174,14 @@ d-i tasksel/first multiselect standard system utilities, OpenSSH server, Basic U
 
 # after installation, install some packages - use only one line!!	
 d-i preseed/late_command string \
-znetconf -a c003; \
 cp /etc/network/interfaces /target/etc/network/interfaces.d/workaround_hack; \
 sed -i -e 's/iface encc000.2893 inet static/iface lxcbr0 inet static\n\tbridge-ports encc000.2893/g' /target/etc/network/interfaces.d/workaround_hack; \
 sed -i 's/auto encc000.2893/auto lxcbr0/g' /target/etc/network/interfaces.d/workaround_hack; \
 echo -e "\nauto encc000.2893" >> /target/etc/network/interfaces.d/workaround_hack; \
 echo -e "iface encc000.2893 inet manual\n\tvlan-raw-device encc000" >> /target/etc/network/interfaces.d/workaround_hack; \
-sed -i 's/vlan_raw_device encc000//g' /target/etc/network/interfaces.d/workaround_hack
+sed -i 's/vlan_raw_device encc000//g' /target/etc/network/interfaces.d/workaround_hack; \
+in-target chzdev --no-root-update -pVe c000 bridge_role=primary; \
+in-target chzdev --no-root-update -pVe c003
 
 #d-i preseed/late_command string in-target sed -i s/prohibit-password/yes/g /etc/ssh/sshd_config; apt-install xfsprogs initramfs-tools screen ftp rsync vim build-essential multipath-tools lsscsi lvm2 automake-1.15 crash strace bc expect ethtool scsitools aptitude vlan libssl-dev opencryptoki libopencryptoki-dev libica-dev libica-utils makedumpfile kdump-tools python flex libjson0-dev libcryptsetup-dev cryptsetup openssl-ibmca sosreport libtool libldap2-dev byacc
 ## d-i preseed/late_command string in-target sed -i s/prohibit-password/yes/g /etc/ssh/sshd_config; apt-install xfsprogs initramfs-tools screen ftp rsync vim build-essential multipath-tools lsscsi lvm2 scsitools kdump-tools
