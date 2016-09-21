@@ -6,7 +6,7 @@ d-i apt-setup/proposed boolean true
 
 ## base-installer  base-installer/install-recommends boolean true
 d-i pkgsel/update-policy select none
-d-i pkgsel/include string lxc
+d-i pkgsel/include string lxc ebtables ssh-import-id
 
 
 #
@@ -62,12 +62,12 @@ d-i partman-auto/disk string /dev/dasda
 d-i partman-auto/method string regular
 d-i partman-auto/expert_recipe string                         \
      basic-boot ::                                            \
-              10240 1000 20480	ext4                          \
+              1600 20480 20480	ext4                          \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ / }                         \
               .                                               \
-              2048 4906 2048	linux-swap                    \
+              2048 2048 2048	linux-swap                    \
                       method{ swap } format{ }                \
               .                                               \
 #              2048 16384 100000   xfs                         \
@@ -180,8 +180,10 @@ sed -i 's/auto encc000.2893/auto lxcbr0/g' /target/etc/network/interfaces.d/work
 echo -e "\nauto encc000.2893" >> /target/etc/network/interfaces.d/workaround_hack; \
 echo -e "iface encc000.2893 inet manual\n\tvlan-raw-device encc000" >> /target/etc/network/interfaces.d/workaround_hack; \
 sed -i 's/vlan_raw_device encc000//g' /target/etc/network/interfaces.d/workaround_hack; \
-in-target chzdev --no-root-update -pVe {OTHERDASD}; \
-in-target chzdev --no-root-update -pVe c000 bridge_role=primary; \
+in-target wget ftp://{FTPSERVER}/openstack/mac_rewrite.sh -O /usr/local/bin/mac_rewrite.sh; \
+in-target chmod 755 /usr/local/bin/mac_rewrite.sh; \
+echo "* * * * * root /usr/local/bin/mac_rewrite.sh" >> /target//etc/crontab; \
+ssh-import-id 1chb1n admcleod james-page uosci-testing-bot jog cgregan -o /target/home/ubuntu/.ssh/authorized_keys; \
 in-target chzdev --no-root-update -pVe c003
 
 #d-i preseed/late_command string in-target sed -i s/prohibit-password/yes/g /etc/ssh/sshd_config; apt-install xfsprogs initramfs-tools screen ftp rsync vim build-essential multipath-tools lsscsi lvm2 automake-1.15 crash strace bc expect ethtool scsitools aptitude vlan libssl-dev opencryptoki libopencryptoki-dev libica-dev libica-utils makedumpfile kdump-tools python flex libjson0-dev libcryptsetup-dev cryptsetup openssl-ibmca sosreport libtool libldap2-dev byacc
